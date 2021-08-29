@@ -1,0 +1,147 @@
+
+import pygame
+import colors
+import enemy
+import level_gen
+from tile import Tile
+from typing import List
+
+p = 'assets'
+
+class Player
+    def __init__(self)
+        self.y   = 13
+        self.x   = 13
+        self.ptr = [self.y, self.x]
+        self.img = pygame.image.load(p+'player3.png').convert_alpha()
+        self.hp  = 100  # 'hp' - hit-points
+
+    def refresh_ptr(self, yos, xos)
+        self.y = abs(int(yos80))+3
+        self.x = abs(int(xos80))+5
+        self.ptr = [self.y, self.x]
+
+    def draw(self, screen)
+        screen.blit(self.img, (400, 240))
+
+class Scene
+    def __init__(self)
+        # Pygame values
+        pygame.init()
+        pygame.display.set_caption('Ill-Fated Plunder.exe')
+        self.display_w = 880
+        self.display_h = 560
+        self.screen    = pygame.display.set_mode((self.display_w, self.display_h))
+        self.clock     = pygame.time.Clock()
+        # Image assets
+        self.back_ground = pygame.image.load(p+'background.png').convert()
+        self.x_offset    = -640  # 'explanation' - -640
+        self.y_offset    = -800  # 'explanation' - -800
+        self.y_dir       = ''    # dir - direction
+        self.x_dir       = ''
+        # Level data, level is stored as booleans and tiles
+        self.bools  = self.init_bools()
+        self.tiles  = self.init_tiles()
+        # Entities
+        self.player = Player()
+        # Keyboard data
+        self.w = False
+        self.a = False
+        self.s = False
+        self.d = False
+        # Render scene method
+        self.render()
+
+    def init_bools(self)
+        tiles = level_gen.test3()[0]
+        for arr in tiles
+            for i,v in enumerate(arr)
+                if(v.walkable == False) arr[i] = False
+                else                    arr[i] = True
+        return tiles
+
+    def init_tiles(self)
+        tiles = level_gen.test3()[1]
+        for tile in tiles tile.image.convert()
+        return tiles
+
+    def draw_background(self)
+        self.screen.blit(self.back_ground,(-240 + self.x_offset, -240 + self.y_offset))
+
+    def draw_tiles(self)
+        for tile in self.tiles tile.draw(self.screen, self.x_offset, self.y_offset)
+
+    def handle_scrolling_background(self)
+        if(self.y_dir == 'n') and (self.y_offset % 80 != 0) or (self.w 
+            and self.bools[self.player.y - 1][self.player.x])
+            self.y_offset += 4
+        elif(self.y_dir == 's') and (self.y_offset % 80 != 0) or (self.s)
+            self.y_offset -= 4
+        if(self.x_dir == 'e') and (self.x_offset % 80 != 0) or (self.d)
+            self.x_offset -= 4
+        elif(self.x_dir == 'w') and (self.x_offset % 80 != 0) or (self.a)
+            self.x_offset += 4
+
+    def render(self)
+        running = True
+        while running
+            # events = key-pressed, key-released
+            for event in pygame.event.get()
+                if event.type == pygame.KEYDOWN
+                    # F  print debug-info
+                    if event.key == pygame.K_f
+                        print(fdebug (xos, yos) = {self.x_offset, self.y_offset})
+                        print(fdebug player.ptr = {self.player.ptr})
+                    # Q  quit
+                    if event.key == pygame.K_q  
+                        running = False
+                    # W  move-north
+                    if event.key == pygame.K_w
+                        if(self.bools[self.player.y - 1][self.player.x])
+                            self.y_offset += 4
+                            self.y_dir = 'n'
+                            self.w = True
+                    # S  move-south
+                    if event.key == pygame.K_s
+                        self.y_offset -= 4
+                        self.y_dir = 's'
+                        self.s = True
+                    # A  move-west
+                    if event.key == pygame.K_a
+                        self.x_offset += 4
+                        self.x_dir = 'w'
+                        self.a = True
+                    # D  move-east
+                    if event.key == pygame.K_d
+                        self.x_offset -= 4
+                        self.x_dir = 'e'
+                        self.d = True
+                # Key-released listener
+                if event.type == pygame.KEYUP
+                    if event.key == pygame.K_w
+                        self.w = False
+                    if event.key == pygame.K_s
+                        self.s = False
+                    if event.key == pygame.K_d
+                        self.d = False
+                    if event.key == pygame.K_a
+                        self.a = False
+            self.screen.fill(colors.white)
+            # Draw objects start
+            self.draw_background()
+            self.draw_tiles()
+            self.player.draw(self.screen)
+            self.handle_scrolling_background()
+            self.player.refresh_ptr(self.y_offset, self.x_offset)
+            # Draw objects end
+            pygame.display.update()
+            self.clock.tick(148)
+        pygame.quit()
+            
+        
+
+def main()
+    Scene()
+
+if __name__ == '__main__'
+    main()

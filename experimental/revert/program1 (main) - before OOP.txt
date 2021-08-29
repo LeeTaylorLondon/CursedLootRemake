@@ -1,0 +1,265 @@
+import pygame
+import colors
+import enemy
+import level_gen
+from tile import Tile, test_level1, test_level2
+from typing import List
+
+# NOTE:
+# To stop game in pygame lagging because of the use of images, always use .convert()
+# Or .convert_alpha() this changes where the images are loaded but it is necessary
+# To reduce the lag significantly, holy smokes...
+
+# PYGAME VARS + INIT
+pygame.init()
+display_width  = 880  # 880 / 80 = 11
+display_height = 560  # 560 / 80 = 7
+screen         = pygame.display.set_mode((display_width,display_height))
+clock          = pygame.time.Clock()
+pygame.display.set_caption('lol.exe')
+
+# IMAGE ASSETS
+p            = 'assets/'  # prefix for directory
+backGround   = pygame.image.load(p+'background.png').convert()
+groundTile   = pygame.image.load(p+'groundTile.png')
+groundTile2  = pygame.image.load(p+'groundTile2.png')
+groundTile2x = pygame.image.load(p+'groundTile2x.png')
+groundTile3  = pygame.image.load(p+'groundTile3.png')
+groundTile3x = pygame.image.load(p+'groundTile3x.png')
+groundTile4  = pygame.image.load(p+'groundTile4.png')
+x_offset     = -640
+y_offset     = -800
+player_png   = pygame.image.load(p+'player.png')
+player2_png  = pygame.image.load(p+'player2.png').convert_alpha()
+player3_png  = pygame.image.load(p+'player3.png').convert_alpha()
+
+# PLAYER VARS
+player_health = 100
+player_damage = 20
+player_y    = 13  # refers to the array
+player_x    = 13  # refers to the elm in arr
+x_direction = 'null'
+y_direction = 'null'
+player_depth= 1
+
+# LEVEL
+store = level_gen.test3()[0]  ## List[List[bool]] -> <collision checks>
+# optimizes content in array {
+for arr in store:
+    for i,v in enumerate(arr):
+        if(v.walkable == False): arr[i] = False
+        else:                    arr[i] = True
+# }
+oneD_store = level_gen.test3()[1]  ## List[Tile] -> <rendering optimized>
+# image.convert() -> <reduces lag> {
+for t in oneD_store:
+        t.image = t.image.convert()
+# }
+ladder_ptr = (7, 18)
+
+# ENEMY
+e1 = enemy.Enemy(1040, 1120)
+e2 = enemy.Enemy(1120, 1120)
+e2.ptr = [14, 14]
+
+e1.image.convert_alpha()
+e2.image.convert_alpha()
+
+store_e = [e1, e2]
+store_e_h = {None: store_e[0], None: store_e[1]}
+for elm in store_e:
+    store[elm.ptr[0]][elm.ptr[1]] = False
+store[player_y][player_x] = False
+
+def null():
+    pass
+
+def use():
+    # player.ptr -> ct := current_tile
+    # if(ct.category == 'ladder'): <call-func 'descend_level'>
+    if((player_y, player_x) == ladder_ptr):
+        print(f"<called-func 'use()' -> player@ladder>")
+    else:
+        print(f"<called-func 'use()'>")
+    pass
+
+''' Combat functions '''
+def combat_w():
+    try:
+        store_e_h.get((player_y - 1, player_x)).health -= 1
+    except AttributeError:
+        pass
+
+def combat_a():
+    try:
+        store_e_h.get((player_y, player_x - 1)).health -= 1
+    except AttributeError:
+        pass
+
+def combat_s():
+    try:
+        store_e_h.get((player_y + 1, player_x)).health -= 1
+    except AttributeError:
+        pass
+
+def combat_d():
+    try:
+        store_e_h.get((player_y, player_x + 1)).health -= 1
+    except AttributeError:
+        pass
+
+''' Draw/render functions '''
+def draw_background():
+    screen.blit(backGround, (-240 + x_offset, -240 + y_offset))
+
+def draw_player():
+    screen.blit(player3_png, (400, 240))
+
+def draw_store_e():
+    for e in store_e:
+        e.draw(screen, x_offset, y_offset, slice_level(e), store)
+
+def draw_store_optimized_2():
+    for t in oneD_store:
+        t.draw(screen, x_offset, y_offset)
+
+def draw_health():
+    red_width = int(player_health * 7.2)
+    pygame.draw.rect(screen, (25, 25, 25),[75, 475, 730, 30])
+    pygame.draw.rect(screen, (200, 0, 0), [80, 480, red_width, 20])
+    
+''' Handles solidarity of tiles '''
+def set_walkable(b):
+    store[player_y][player_x] = b
+
+def update_walkable(func):
+    ''' Sets previous tile to walkable and the current to not walkable '''
+    def wrapper(*args, **kwargs):
+        set_walkable(True)  # previous tile is walkable
+        rv = func(*args, **kwargs)
+        set_walkable(False) # current tile is no longer walkable
+        return rv
+    return wrapper
+
+''' Scrolling background functions '''
+@update_walkable
+def left():
+    global x_offset, player_x, x_direction
+    if(x_direction=='null'):
+        x_offset += 4
+        x_direction = 'west'
+        player_x -= 1
+
+@update_walkable
+def right():
+    global x_offset, player_x, x_direction
+    if(x_direction=='null'):
+        x_offset -= 4
+        x_direction = 'east'
+        player_x += 1
+
+@update_walkable
+def up():
+    global y_offset, player_y, y_direction
+    if(y_direction=='null'):
+        y_offset += 4
+        y_direction = 'north'
+        player_y -= 1
+
+@update_walkable
+def down():
+    global y_offset, y_direction, player_y
+    if(y_direction=='null'):
+        y_offset -= 4
+        y_direction = 'south'
+        player_y += 1
+
+def slice_level(e) -> List[Tile]:
+    ''' e = enemy-obj, rv = [n, e, s, w] (tile-obj's)'''
+    y, x = e.ptr[0], e.ptr[1]
+    return [store[y-1][x],
+            store[y][x+1],
+            store[y+1][x],
+            store[y][x-1]]
+  
+def main():
+    # init vars, running -> T, keydown_X -> F, globals affecting visuals
+    global x_offset, y_offset, x_direction, y_direction, player_x, player_y, store_e_h
+    running = True
+    move_left  = {True: {True: left,  False: combat_a}, False: {True: null, False: null}}
+    move_right = {True: {True: right, False: combat_d}, False: {True: null, False: null}}
+    move_down  = {True: {True: down, False: combat_s},  False: {True: null, False: null}}
+    move_up    = {True: {True: up, False: combat_w},    False: {True: null, False: null}}
+    keydown_a, keydown_d, keydown_s, keydown_w = False, False, False, False
+    
+    while running:
+        # pygame events
+        for event in pygame.event.get():
+            # Monitoring -> Keydown
+            if event.type == pygame.KEYDOWN:
+                # key_F -> debug info
+                if event.key == pygame.K_f:
+                    print(f"<player_ptr = [{player_y}][{player_x}]>")
+                    print(f"<offset_vals = [{x_offset}][{y_offset}]>")
+                    print(f"<Tile c_tile.w = {store[player_y][player_x]}>")
+                    print(clock.get_fps())
+                # key_Q -> quit
+                if event.key == pygame.K_q:
+                    running = False
+                # key_A -> move-left
+                if event.key == pygame.K_a:
+                    keydown_a = True
+                # key_D -> move-right
+                if event.key == pygame.K_d:
+                    keydown_d = True
+                # key_W -> move-up
+                if event.key == pygame.K_w:
+                    keydown_w = True
+                # key_S -> move-down
+                if event.key == pygame.K_s:
+                    keydown_s = True
+                # key_E -> Use
+                if event.key == pygame.K_e:
+                    use()
+            # Monitoring -> KeyRelease
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_a:
+                    keydown_a = False
+                if event.key == pygame.K_d:
+                    keydown_d = False
+                if event.key == pygame.K_w:
+                    keydown_w = False
+                if event.key == pygame.K_s:
+                    keydown_s = False
+        screen.fill(colors.white)
+        
+        # <handle scrolling_background> {
+        move_left.get(keydown_a).get(store[player_y][player_x-1])()
+        move_right.get(keydown_d).get(store[player_y][player_x+1])()
+        move_up.get(keydown_w).get(store[player_y-1][player_x])()
+        move_down.get(keydown_s).get(store[player_y+1][player_x])()
+        # handle scrolling background (horizontal)
+        if   (x_offset % 80 != 0 and x_direction == 'east'): x_offset -= 4
+        elif (x_offset % 80 != 0 and x_direction == 'west'): x_offset += 4
+        else: x_direction = 'null'
+        # handle scrolling background (vertical)
+        if   (y_offset % 80 != 0 and y_direction == 'north'): y_offset += 4
+        elif (y_offset % 80 != 0 and y_direction == 'south'): y_offset -= 4
+        else: y_direction = 'null'
+        
+        # handle drawing (rendering)
+        store_e_h = {(e1.ptr[0], e1.ptr[1]): e1,
+                     (e2.ptr[0], e2.ptr[1]): e2}
+        draw_background()        # background
+        draw_store_optimized_2() # level tiles
+        draw_player()            # player model
+        draw_store_e()           # enemy model(s)
+        draw_health()
+        # .update -> redraws screen, .tick(x) -> int x = refresh rate
+        pygame.display.update()
+        clock.tick(148)
+    pygame.quit()
+
+if __name__ == '__main__':
+    main()
+    
