@@ -30,22 +30,42 @@ def plotmags(matrix:List[List[int]], start_coords=None):
     while len(queue) > 0:
         d_counter += 1
         x,y = queue.pop()
-        print(f"y:{y},x:{x}")
+        # print(f"y:{y},x:{x}")
         mag = rv[y][x]
-        if not y-1 < 0:
-            if rv[y-1][x] is None:
-                queue.append((x, y-1))
-            rv[y-1][x] = mag + 1
-        if not x+1 >= len(rv[y]):
+        if not x-1 < 0: # left
+            if rv[y][x-1] is None:
+                queue.append((x-1, y))
+                rv[y][x-1] = mag + 1
+        if not x+1 >= len(rv[y]): # right
             if rv[y][x+1] is None:
                 queue.append((x+1, y))
-            rv[y][x+1] = mag + 1
-        # if not x-1 < 0:
-        #     rv[y][x-1] = mag + 1
-        #     queue.append((x-1, y))
-        # # print2d(rv)
+                rv[y][x+1] = mag + 1
+        if not y-1 < 0: # up
+            if rv[y-1][x] is None:
+                queue.append((x, y-1))
+                rv[y-1][x] = mag + 1
+        print2d(rv)
+
+    queue = [start_coords]
+    while len(queue) > 0:
+        d_counter += 1
+        x,y = queue.pop()
+        # print(f"y:{y},x:{x}")
+        mag = rv[y][x]
+        if not x-1 < 0: # left
+            if rv[y][x-1] is None:
+                queue.append((x-1, y))
+                rv[y][x-1] = mag + 1
+        if not x+1 >= len(rv[y]): # right
+            if rv[y][x+1] is None:
+                queue.append((x+1, y))
+                rv[y][x+1] = mag + 1
+        if not y+1 >= len(rv): # down
+            if rv[y+1][x] is None:
+                queue.append((x, y+1))
+                rv[y+1][x] = mag + 1
 
     print2d(rv)
-    print(d_counter)
+    print(f"Actions: {d_counter}")
 
 plotmags(grid)
