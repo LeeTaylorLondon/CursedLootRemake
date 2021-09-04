@@ -1,18 +1,10 @@
 from typing import List
 
-grid = [[1 for x in range(20)] for arr in range(20)]
 
 def print2d(matrix):
     for vec in matrix: print(vec)
     print()
 
-starting_coords = (6, 2)
-
-# print2d(grid)
-
-grid[6][2] = 0
-
-print2d(grid)
 
 def plotmags(matrix:List[List[int]], start_coords=None):
     rv = matrix.copy()
@@ -68,4 +60,12 @@ def plotmags(matrix:List[List[int]], start_coords=None):
     print2d(rv)
     print(f"Actions: {d_counter}")
 
-plotmags(grid)
+grid = [[1 for x in range(20)] for arr in range(20)]
+
+starting_coords = (6, 2)
+
+grid[6][2] = 0
+
+print2d(grid)
+
+plotmags(grid, (2,6))
