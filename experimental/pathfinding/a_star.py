@@ -8,7 +8,7 @@ def print2d(matrix):
 
 starting_coords = (6, 2)
 
-print2d(grid)
+# print2d(grid)
 
 grid[6][2] = 0
 
@@ -22,35 +22,18 @@ def plotmags(matrix:List[List[int]], start_coords=None):
                 if n == 0:
                     start_coords = (x,y)
     queue = [start_coords]
-    while len(queue) != 0:
-        x, y = queue.pop()
+    while len(queue) > 0:
+        x,y = queue.pop()
+        print(x, y)
+        mag = rv[y][x]
         try:
-            current_mag = matrix[y][x]
-        except IndexError:
-            continue
-        try:
-            matrix[y-1][x] = current_mag + 1
-        except IndexError:
-            pass
-        try:
-            matrix[y][x+1] = current_mag + 1
+            if not y-1 < 0:
+                rv[y-1][x] = mag + 1
+                queue.append((x, y-1))
+            print2d(rv)
         except IndexError:
             pass
-        try:
-            matrix[y+1][x] = current_mag + 1
-        except IndexError:
-            pass
-        try:
-            matrix[y][x-1] = current_mag + 1
-        except IndexError:
-            pass
-        queue.append((y-1, x))
-        queue.append((y, x+1))
-        queue.append((y+1, x))
-        queue.append((y, x-1))
-        print2d(rv)
     print2d(rv)
-    return rv
 
 
 plotmags(grid)
