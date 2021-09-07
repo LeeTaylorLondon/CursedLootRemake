@@ -6,6 +6,7 @@ from typing import NoReturn, List, Tuple
 # from pathfinding.core.diagonal_movement import DiagonalMovement
 # from pathfinding.core.grid              import Grid
 # from pathfinding.finder.a_star          import AStarFinder
+from experimental.pathfinding import a_star_alt
 
 
 p      = 'assets/'
@@ -35,7 +36,7 @@ class Enemy:
         self.yos   = 0
         self.ptr   = None  # [y, x] ptrs to level (matrix)
         # Movement
-        self.interval = random.randint(1, 4) / 10
+        self.interval = random.randint(1, 4) / 5
         self.steps    = {'n': self.step_n, 'e': self.step_e,
                          's': self.step_s, 'w': self.step_w,
                          '' : self.null}
@@ -135,6 +136,19 @@ class Enemy:
         # return path
         return None
 
+    def pathfind_alt(self):
+        if self.player is not None:
+            if time.time() > self.clock + self.interval:
+            #     if (self.path == []):  # Calculate + init. path
+            #         self.path = self.pathfind()
+            #         if (len(self.path) > 0): del self.path[0]
+            #     if (time.time() > self.clock + self.interval) and (len(self.path) > 0):  # Step for each interval
+                self.clock = time.time()
+                start = (self.ptr[0], self.ptr[1])
+                end = (self.player.x, self.player.y)
+                path = a_star_alt.astar(self.level, start, end)
+                print(path)
+
     """ Health methods and main draw (render) method """
 
     def draw_health(self, screen: pygame.surface, xos: int, yos: int) -> NoReturn:
@@ -159,7 +173,8 @@ class Enemy:
         '''
         screen.blit(self.image, (self.x + self.xos + xos,
                                  self.y + self.yos + yos))
-        self.movement_behaviour()
+        # self.movement_behaviour()
+        self.pathfind_alt()
         self.draw_health(screen, xos, yos)
         self.check_health()
 

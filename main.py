@@ -171,7 +171,7 @@ class Scene:
             Rewrite: Optimize to remove 'random-loop' -> While True: ...
         '''
         rv = {}
-        quan_enemies = 7 #random.randint(25, 26)  # random quantity of enemies
+        quan_enemies = 1 #random.randint(25, 26)  # random quantity of enemies
         for i in range(quan_enemies):
             while True:
                 ri = random.randint(1, len(self.tiles)-2)
